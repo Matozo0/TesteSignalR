@@ -1,0 +1,56 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Fila Hospital";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.4/signalr.min.js"
+            integrity="sha512-..."
+            crossorigin="anonymous"></script>
+</head>
+<body>
+    <h1>Fila Hospital</h1>
+    
+    <div>
+        <span>SENHA ATUAL: </span><strong id="lblSenha">-</strong>
+    </div>
+    <br />
+    <button id="btnChamar">Chamar Próxima Senha</button>
+
+    <script>
+        // Cria conexao com o hub
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/ticketHub") // mesmo endpoint que configuramos em Program.cs
+            .build();
+
+        // Funcao que é chamada quando é atualizado
+        connection.on("SenhaAtualizada", function (novaSenha) {
+            document.getElementById("lblSenha").textContent = novaSenha;
+        });
+
+        // Iniciar a conexão
+        connection.start()
+            .then(function () {
+                console.log("Conectado ao SignalR!");
+                // Assim que conectar, pedir ao servidor a senha atual
+                connection.invoke("ObterSenhaAtual");
+            })
+            .catch(function (err) {
+                return console.error(err.toString());
+            });
+
+        // Invoke do hub
+        document.getElementById("btnChamar").addEventListener("click", function () {
+            connection.invoke("ChamarProximaSenha")
+                .catch(function (err) {
+                    return console.error(err.toString());
+                });
+        });
+    </script>
+</body>
+</html>
